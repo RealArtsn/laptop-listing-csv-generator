@@ -1,4 +1,5 @@
-import time
+import time, re
+
 def main():
     item = get_item_info()
     generate_title(item)
@@ -12,9 +13,9 @@ def generate_title(item):
     title_list = [item['model'], item['cpu'], item['ram'] + 'GB RAM']
     missing_list = []
     if item['has_storage']:
-        title_list.append(f'{item['storage_capacity']}GB SSD')
+        title_list.append(f'{item['storage_capacity']}GB {item['storage_type'].split(' ')[0]}')
     else:
-        missing_list.append('SSD')
+        missing_list.append(item['storage_type'].split(' ')[0])
     if item['os'] == 'Not Included':
         missing_list.append('OS')
     else:
@@ -37,7 +38,15 @@ def get_item_info():
     item['screen_size'] = input('Screen size (in): ')
     item['has_storage'] = prompt_default('Storage? (Y/n): ')
     if item['has_storage']:
-        item['storage_capacity'] = input('Storage capacity? (GB): ')
+        (item['storage_type'], item['storage_capacity']) = prompt_storage()
+        item['Hard Drive Capacity'] = 'N/A'
+        item['SSD Capacity'] = 'N/A'
+        match item['storage_type']:
+            case 'SSD (Solid State Drive)':
+                item['SSD Capacity'] = item['storage_capacity'] + ' GB'
+            case 'HDD (Hard Disk Drive)':
+                item['Hard Drive Capacity'] = item['storage_capacity'] + ' GB'
+
     item['has_battery'] = prompt_default('Contains battery? (Y/n): ')
     if item['has_battery']:
         item['battery_health'] = input('Battery health (%): ')
@@ -68,6 +77,22 @@ def prompt_gpu():
     ]
     gpu_type = select_number_or_custom(gpu_types)
     return [selected_gpu, gpu_type]
+
+def prompt_storage():
+    storage_types = [
+        'SSD (Solid State Drive)',
+        'HDD (Hard Disk Drive)'
+    ]
+    storage_type = select_number_or_custom(storage_types)
+    while True:
+        storage_capacity = input('Storage Capacity (GB): ')
+        print(re.match('[0-9]*',storage_capacity))
+        storage_capacity = re.match('[0-9]*',storage_capacity)[0]
+        if storage_capacity == '':
+            continue
+        break    
+    return (storage_type, storage_capacity)
+    
 
 def select_number_or_custom(choices):
     print('Select:')
@@ -116,8 +141,8 @@ def generate_fields(item: dict):
         'Price': item['price'],
         'Quantity': item['quantity'],
         'ConditionID': '3000',
-        'ConditionDescription': 'Test Condition',
-        'Description': '',
+        'ConditionDescription': 'Test Condition', # TODO: FIX CONDITION
+        'Description': '', # TODO: FIX DESCRIPTION
         'Format': 'FixedPrice'
     }
     with open(generate_filename(item), 'w') as f:
