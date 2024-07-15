@@ -32,13 +32,15 @@ def get_item_info():
     item['model'] = input('Model: ')
     item['cpu'] = input('CPU: ')
     item['ram'] = input('RAM capacity (GB): ')
+    item['gpu'] = prompt_gpu()
+    print(item['gpu'])
+    item['screen_size'] = input('Screen size (in): ')
     item['has_storage'] = prompt_default('Storage? (Y/n): ')
     if item['has_storage']:
         item['storage_capacity'] = input('Storage capacity? (GB): ')
     item['has_battery'] = prompt_default('Contains battery? (Y/n): ')
     if item['has_battery']:
         item['battery_health'] = input('Battery health (%): ')
-    # get OS
     item['os'] = prompt_os()
     item['sku'] = input('SKU: ')
     item['price'] = input('Price ($): ')
@@ -46,17 +48,46 @@ def get_item_info():
     return item
 
 def prompt_os():
-    print('1: Windows 11 Pro\n2: Not Included')
-    invalid_input = True
+    return select_number_or_custom(['Windows 11 Pro', 'Not Included'])
+
+def prompt_gpu():
+    gpus = [
+        'Intel HD Graphics',
+        'Intel UHD Graphics',
+        'Intel UHD Graphics 620',
+        'Intel Iris XE Graphics',
+    ]
+    selected_gpu = select_number_or_custom(gpus)
+    if selected_gpu in gpus:
+        gpu_type = 'Integrated/On-Board Graphics'
+        return [selected_gpu, gpu_type]
+    gpu_types = [
+        'Integrated/On-Board Graphics',
+        'Hybrid Graphics',
+        'Dedicated Graphics'
+    ]
+    gpu_type = select_number_or_custom(gpu_types)
+    return [selected_gpu, gpu_type]
+
+def select_number_or_custom(choices):
+    print('Select:')
+    for choice in enumerate(choices):
+        print(f'{choice[0] + 1}: {choice[1]}')
     while True:
-        match input('1 or 2? '):
-            case '1':
-                return 'Windows 11 Pro'
-            case '2':
-                return 'Not Included'
+        response = input('Select number or type custom: ')
+        try:
+            return choices[int(response) - 1]
+        except(ValueError):
+            return response
+        except(IndexError):
+            continue
 
 def generate_filename(item: dict):
     return item['model'].replace(' ','-') + '_' + str(int(time.time())) + '.csv'
+
+# def get_description(file):
+#     with open(file) as f:
+#         return f.read()
 
 def generate_fields(item: dict):
     listing = {
@@ -70,6 +101,7 @@ def generate_fields(item: dict):
         'UPC': '',
         'C:Model': item['model'],
         'C:Operating System': item['os'],
+        'C:GPU': item['gpu'][0],
         'C:SSD Capacity': item['storage_capacity'] + ' GB',
         'C:Features': '',
         'C:Type': 'Notebook/Laptop',
@@ -80,11 +112,11 @@ def generate_fields(item: dict):
         'C:Series': item['model'].split(' ')[1],
         'C:RAM Size': item['ram'] + ' GB',
         'C:Most Suitable For': 'Casual Computing',
-        'C:Graphics Processing Type': 'Integrated/On-Board Graphics',
+        'C:Graphics Processing Type': item['gpu'][1],
         'Price': item['price'],
         'Quantity': item['quantity'],
-        'Condition ID': '3000',
-        'ConditionNote': 'Test Condition',
+        'ConditionID': '3000',
+        'ConditionDescription': 'Test Condition',
         'Description': '',
         'Format': 'FixedPrice'
     }
