@@ -110,9 +110,12 @@ def select_number_or_custom(choices):
 def generate_filename(item: dict):
     return item['model'].replace(' ','-') + '_' + str(int(time.time())) + '.csv'
 
-# def get_description(file):
-#     with open(file) as f:
-#         return f.read()
+def generate_condition(item: dict):
+    return 'Condition field test'
+
+def get_description(file):
+    with open(file) as f:
+        return f'"{f.read()}"'
 
 def generate_fields(item: dict):
     listing = {
@@ -140,9 +143,9 @@ def generate_fields(item: dict):
         'C:Graphics Processing Type': item['gpu'][1],
         'Price': item['price'],
         'Quantity': item['quantity'],
-        'ConditionID': '3000',
-        'ConditionDescription': 'Test Condition', # TODO: FIX CONDITION
-        'Description': '', # TODO: FIX DESCRIPTION
+        'Condition ID': 'USED',
+        'ConditionDescription': generate_condition(item), # TODO: FIX CONDITION
+        'Description': get_description('template.html'),
         'Format': 'FixedPrice'
     }
     with open(generate_filename(item), 'w') as f:
